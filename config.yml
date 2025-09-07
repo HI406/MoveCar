@@ -1,0 +1,38 @@
+# 一键挪车 配置文件（支持直接修改并在容器重启时生效）
+
+plate: "桂A·12345"               # 车牌号；新能源示例: "桂A·12345D"
+owner_phone: "13800138000"      # 车主手机号（纯数字）
+
+# 前端页面启用时间段（每日生效），多个时间段按顺序匹配
+# 格式：HH:MM-HH:MM，24小时制。示例：08:00-22:00
+enable_windows:
+  - "08:00-22:00"
+
+# 前端页面提示文字与样式
+front:
+  text: "**请勿遮挡** 本车临时停车，若影响出行请点击下方按钮通知我挪车。"
+  align: "center"  # left/center/right
+  font_size: 20    # px
+  bg_mode: "auto"  # tiling|scaling|fit|stretch|center|crop|auto
+  # 背景图来源二选一：
+  # 1) 使用本地图（推荐通过后台上传），文件名固定为 static/backImg/front.*（png/jpg/webp/gif）
+  # 2) 使用 URL。若同时存在，本地图优先。
+  bg_url: ""
+
+# 403 页面提示文字与样式（非启用时段内展示）
+page403:
+  text: "当前时段不提供挪车服务，给您带来不便敬请谅解。"
+  align: "center"
+  font_size: 20
+  bg_mode: "auto"
+  bg_url: ""
+
+# 前端主按钮文案（可按需修改）
+labels:
+  notify: "叫车主挪车"
+  call: "打电话给车主"
+
+# 点击“叫车主挪车”后的对话框提示
+notify_dialog: "抱歉临时停车给您带来不便，车主已收到您的挪车提醒，正在火速赶来中，请您耐心等待。"
+
+# 禁用时（403页）仅显示提示文字，不显示车牌和按钮

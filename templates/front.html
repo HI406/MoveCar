@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block body %}
+<div id="root" class="screen {{ 'bg-'+cfg.front.bg_mode if cfg.front and cfg.front.bg_mode else 'bg-auto' }}"
+     data-front-bg-url="{{ cfg.front.bg_url or '' }}"
+     data-front-bg-local="{{ '/static/backImg/' ~ ( (fn) if false else '' ) }}">
+  <div class="overlay">
+    <div id="front-text" class="tip" style="text-align: {{ cfg.front.align }}; font-size: {{ cfg.front.font_size }}px;"></div>
+    <div class="plate {{ 'nev' if is_new_energy else 'fuel' }}">
+      <div class="province">{{ province }}</div>
+      <div class="city">{{ city }}</div>
+      <div class="middle">·</div>
+      <div class="rest">{{ number }}</div>
+    </div>
+
+    <div class="actions">
+      <button id="btn-notify" class="btn primary">{{ cfg.labels.notify if cfg.labels else '叫车主挪车' }}</button>
+      <button id="btn-call" class="btn outline hidden">{{ cfg.labels.call if cfg.labels else '打电话给车主' }}</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+// 背景图加载优先级：本地 front.* -> 配置URL
+(function() {
+  const root = document.getElementById('root');
+  const bgLocalCandidates = ['png','jpg','jpeg','webp','gif'].map(ext => `/static/backImg/front.${ext}`);
+  const bgUrl = "{{ (cfg.front.bg_url or '').strip() }}";
+  function setBg(url){ root.style.setProperty('--bg', `url('${url}')`); }
+  async function tryLoad(url){
+    try{ const r = await fetch(url, {method:'HEAD'}); return r.ok; }catch(e){ return false; }
+  }
+  (async () => {
+    for (const u of bgLocalCandidates) {
+      if (await tryLoad(u)) { setBg(u); return; }
+    }
+    if (bgUrl) setBg(bgUrl);
+  })();
+})();
+
+// 文案 markdown（**、*）渲染
+document.getElementById('front-text').innerHTML = mdLite(`{{ (cfg.front.text or '').replace('\n','\\n') }}`);
+
+// 叫车主挪车
+const btnNotify = document.getElementById('btn-notify');
+const btnCall = document.getElementById('btn-call');
+btnNotify.addEventListener('click', async () => {
+  try{
+    const r = await fetch('/api/notify', {method:'POST'});
+    const data = await r.json();
+    if (!data.ok) throw new Error(data.error || '通知失败');
+    showDialog(`{{ (cfg.notify_dialog or '').replace('\n','\\n') }}`);
+    sessionStorage.setItem('hasNotified', '1');
+    btnCall.classList.remove('hidden');
+  }catch(e){
+    toast('通知失败：' + e.message);
+  }
+});
+
+// 打电话给车主（首次需要已通知）
+(function(){
+  const enabled = sessionStorage.getItem('hasNotified') === '1';
+  if (enabled) btnCall.classList.remove('hidden');
+})();
+
+btnCall.addEventListener('click', async () => {
+  const phone = "{{ cfg.owner_phone }}";
+  try {
+    await navigator.clipboard.writeText(phone);
+    toast('车主手机号');
+  } catch(e) {
+    // 忽略剪贴板失败
+  }
+  window.location.href = 'tel:' + phone;
+});
+
+</script>
+{% endblock %}

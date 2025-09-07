@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block body %}
+<div id="root" class="screen {{ 'bg-'+page.bg_mode if page and page.bg_mode else 'bg-auto' }}">
+  <div class="overlay only-text">
+    <div id="p403-text" class="tip" style="text-align: {{ page.align }}; font-size: {{ page.font_size }}px;"></div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+// 背景图加载优先级：本地 403.* -> 配置URL
+(function() {
+  const root = document.getElementById('root');
+  const bgLocalCandidates = ['png','jpg','jpeg','webp','gif'].map(ext => `/static/backImg/403.${ext}`);
+  const bgUrl = "{{ (page.bg_url or '').strip() }}";
+  function setBg(url){ root.style.setProperty('--bg', `url('${url}')`); }
+  async function tryLoad(url){
+    try{ const r = await fetch(url, {method:'HEAD'}); return r.ok; }catch(e){ return false; }
+  }
+  (async () => {
+    for (const u of bgLocalCandidates) {
+      if (await tryLoad(u)) { setBg(u); return; }
+    }
+    if (bgUrl) setBg(bgUrl);
+  })();
+})();
+
+document.getElementById('p403-text').innerHTML = mdLite(`{{ (page.text or '').replace('\n','\\n') }}`);
+</script>
+{% endblock %}

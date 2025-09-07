@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="admin">
+  <h1>一键挪车 · 后台管理</h1>
+  <form action="/admin/save" method="post" enctype="multipart/form-data" class="card">
+    <div class="grid">
+      <label>车牌号</label>
+      <input type="text" name="plate" placeholder="例：桂A·12345 或 桂A12345D" value="{{ cfg.plate }}">
+
+      <label>车主手机号</label>
+      <input type="text" name="owner_phone" placeholder="仅数字" value="{{ cfg.owner_phone }}">
+
+      <label>启用时间段（每日）</label>
+      <textarea name="enable_windows" rows="4" placeholder="每行一个时间段，如：08:00-22:00">{{ '\n'.join(cfg.enable_windows or []) }}</textarea>
+
+      <h2>前端页面设置</h2>
+      <label>提示文字</label>
+      <textarea name="front_text" rows="4">{{ cfg.front.text if cfg.front else '' }}</textarea>
+
+      <label>对齐方式</label>
+      <select name="front_align">
+        {% for v in ['left','center','right'] %}
+        <option value="{{ v }}" {% if cfg.front.align==v %}selected{% endif %}>{{ v }}</option>
+        {% endfor %}
+      </select>
+
+      <label>字体大小(px)</label>
+      <input type="number" name="front_font_size" value="{{ cfg.front.font_size }}">
+
+      <label>背景显示模式</label>
+      <select name="front_bg_mode">
+        {% for v in ['tiling','scaling','fit','stretch','center','crop','auto'] %}
+        <option value="{{ v }}" {% if cfg.front.bg_mode==v %}selected{% endif %}>{{ v }}</option>
+        {% endfor %}
+      </select>
+
+      <label>背景图片 URL（可选）</label>
+      <input type="text" name="front_bg_url" value="{{ cfg.front.bg_url }}">
+      <div class="upload">
+        <span>上传本地图片（png/jpg/webp/gif）：</span>
+        <input type="file" id="front_file" accept=".png,.jpg,.jpeg,.webp,.gif">
+        <button type="button" id="btn-front-upload" class="btn sm">上传作为 front.*</button>
+        <small>本地文件优先于URL，文件将保存为 static/backImg/front.*</small>
+      </div>
+
+      <h2>403 页面设置</h2>
+      <label>提示文字</label>
+      <textarea name="page403_text" rows="3">{{ cfg.page403.text if cfg.page403 else '' }}</textarea>
+
+      <label>对齐方式</label>
+      <select name="page403_align">
+        {% for v in ['left','center','right'] %}
+        <option value="{{ v }}" {% if cfg.page403.align==v %}selected{% endif %}>{{ v }}</option>
+        {% endfor %}
+      </select>
+
+      <label>字体大小(px)</label>
+      <input type="number" name="page403_font_size" value="{{ cfg.page403.font_size }}">
+
+      <label>背景显示模式</label>
+      <select name="page403_bg_mode">
+        {% for v in ['tiling','scaling','fit','stretch','center','crop','auto'] %}
+        <option value="{{ v }}" {% if cfg.page403.bg_mode==v %}selected{% endif %}>{{ v }}</option>
+        {% endfor %}
+      </select>
+
+      <label>背景图片 URL（可选）</label>
+      <input type="text" name="page403_bg_url" value="{{ cfg.page403.bg_url }}">
+      <div class="upload">
+        <span>上传本地图片（png/jpg/webp/gif）：</span>
+        <input type="file" id="p403_file" accept=".png,.jpg,.jpeg,.webp,.gif">
+        <button type="button" id="btn-403-upload" class="btn sm">上传作为 403.*</button>
+        <small>本地文件优先于URL，文件将保存为 static/backImg/403.*</small>
+      </div>
+
+      <h2>按钮与文案</h2>
+      <label>“叫车主挪车”按钮</label>
+      <input type="text" name="label_notify" value="{{ cfg.labels.notify if cfg.labels else '叫车主挪车' }}">
+
+      <label>“打电话给车主”按钮</label>
+      <input type="text" name="label_call" value="{{ cfg.labels.call if cfg.labels else '打电话给车主' }}">
+
+      <label>通知后弹窗提示</label>
+      <textarea name="notify_dialog" rows="2">{{ cfg.notify_dialog or '' }}</textarea>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn primary lg">保存配置</button>
+      <a class="btn outline" href="/" target="_blank">打开前端页面</a>
+      <a class="btn outline" href="/403" target="_blank">预览403页面</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function upload(endpoint, fileInput){
+  const f = fileInput.files[0];
+  if(!f){ alert('请选择文件'); return; }
+  const fd = new FormData();
+  fd.append('img', f);
+  fetch(endpoint, { method:'POST', body: fd }).then(r=>r.json()).then(d=>{
+    if(d.ok){ alert('上传成功: ' + d.url); } else { alert('上传失败'); }
+  }).catch(e=>alert('上传失败: ' + e.message));
+}
+
+document.getElementById('btn-front-upload').onclick = () => upload('/admin/upload/front', document.getElementById('front_file'));
+document.getElementById('btn-403-upload').onclick = () => upload('/admin/upload/403', document.getElementById('p403_file'));
+</script>
+{% endblock %}
