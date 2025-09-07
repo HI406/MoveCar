@@ -19,7 +19,7 @@ docker compose up -d --build
 在启动前，按需设置环境变量（也可以直接在 docker-compose.yml 中修改）：
 
 - `WECOMCHAN_BASE_URL` 例如：`http://10.1.5.186:7032/wecomchan`
-- `WECOMCHAN_SENDKEY`   例如：`weiqingyuan`
+- `WECOMCHAN_SENDKEY`   例如：`sendkey1234`
 - `WECOMCHAN_MSG_TYPE`  默认为 `text`
 
 ### 编辑配置
